@@ -2,385 +2,107 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>심리 테스트 모음</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>심리 테스트</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
-    max-width: 700px;
+    max-width: 600px;
     margin: 40px auto;
     padding: 20px;
-    background: #f0f4f8;
-    border-radius: 8px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    background: #f9f9f9;
+    color: #222;
   }
   h1 {
     text-align: center;
-    color: #333;
-  }
-  #test-select {
     margin-bottom: 20px;
-    font-size: 1.1rem;
-    padding: 8px;
-    width: 100%;
-    max-width: 400px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
   }
   #test-title {
-    font-weight: bold;
-    font-size: 1.3rem;
+    font-size: 24px;
     margin-bottom: 10px;
-    text-align: center;
-    color: #444;
-  }
-  #question {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-    color: #222;
   }
   #instructions {
-    font-size: 0.9rem;
-    margin-bottom: 15px;
+    font-size: 14px;
     color: #666;
+    margin-bottom: 15px;
+  }
+  #question-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.1);
+  }
+  #question {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+  #options-list {
+    margin-bottom: 20px;
+    font-size: 16px;
+    line-height: 1.5;
+    white-space: pre-line;
+    color: #444;
+  }
+  #input-container {
     text-align: center;
-    font-style: italic;
   }
-  .option-btn {
-    display: block;
-    width: 100%;
-    padding: 12px 16px;
-    margin: 8px 0;
-    font-size: 1rem;
-    border: none;
+  #answer-input {
+    width: 80px;
+    font-size: 18px;
+    padding: 8px 12px;
+    border: 2px solid #ccc;
     border-radius: 6px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    text-align: left;
+    color: #222;
   }
-  .option-btn:hover, .option-btn:focus {
-    background-color: #2980b9;
-    outline: none;
+  #answer-input::placeholder {
+    color: #aaa;
   }
   #result {
     margin-top: 30px;
-    font-size: 1.15rem;
-    font-weight: bold;
-    color: #2c3e50;
     white-space: pre-line;
-    text-align: center;
-    min-height: 150px;
-    line-height: 1.4;
+    font-size: 16px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    min-height: 120px;
+  }
+  #test-select {
+    display: block;
+    margin: 0 auto 30px auto;
+    font-size: 18px;
+    padding: 6px 12px;
   }
 </style>
 </head>
 <body>
 
-<h1>심리 테스트 모음</h1>
+<h1>심리 테스트</h1>
 
-<select id="test-select" aria-label="테스트 선택">
-  <option value="">테스트 선택하세요</option>
+<select id="test-select">
+  <option value="">-- 테스트 선택 --</option>
+  <option value="emotion">감정 상태 테스트</option>
+  <option value="stress">스트레스 테스트</option>
   <option value="mbti">MBTI 테스트</option>
   <option value="taste">취향 분석 테스트</option>
-  <option value="career">미래 진로 직업군 테스트</option>
-  <option value="stress">스트레스 테스트</option>
-  <option value="emotion">감정 상태 테스트</option>
+  <option value="career">미래진로 희망 직업군 테스트</option>
 </select>
 
 <div id="test-title"></div>
+<div id="instructions">숫자를 입력하고 Enter 키를 눌러 선택하세요.</div>
 
 <div id="question-container" style="display:none;">
   <div id="question"></div>
-  <div id="instructions">선택지 번호(1,2,3...) 또는 방향키 ←↑↓→ 로 선택하세요</div>
-  <div id="options"></div>
+  <pre id="options-list"></pre>
+  <div id="input-container">
+    <input type="text" id="answer-input" autocomplete="off" placeholder="1~번호 입력" maxlength="2" />
+  </div>
 </div>
 
 <div id="result"></div>
 
 <script>
 const tests = {
-  mbti: {
-    title: "MBTI 테스트",
-    questions: [
-      { text: "사람들과 어울리는 걸 좋아한다.", options: [
-        { text: "네, 좋아한다", scores: { E: 1 } },
-        { text: "아니요, 혼자 있는 걸 더 좋아한다", scores: { I: 1 } }
-      ]},
-      { text: "상황을 판단할 때 사실에 집중한다.", options: [
-        { text: "네, 사실에 집중한다", scores: { S: 1 } },
-        { text: "아니요, 가능성을 더 생각한다", scores: { N: 1 } }
-      ]},
-      { text: "결정을 내릴 때 논리와 원칙을 중시한다.", options: [
-        { text: "네, 논리를 중시한다", scores: { T: 1 } },
-        { text: "아니요, 감정을 고려한다", scores: { F: 1 } }
-      ]},
-      { text: "계획을 세워 일하는 편이다.", options: [
-        { text: "네, 계획적으로 일한다", scores: { J: 1 } },
-        { text: "아니요, 즉흥적으로 일한다", scores: { P: 1 } }
-      ]},
-      { text: "낯선 사람과 쉽게 친해진다.", options: [
-        { text: "네, 쉽게 친해진다", scores: { E: 1 } },
-        { text: "아니요, 조심스러운 편이다", scores: { I: 1 } }
-      ]},
-      { text: "자세한 정보를 중요하게 생각한다.", options: [
-        { text: "네, 구체적인 정보를 좋아한다", scores: { S: 1 } },
-        { text: "아니요, 큰 그림을 보는 걸 좋아한다", scores: { N: 1 } }
-      ]},
-      { text: "감정 표현이 솔직한 편이다.", options: [
-        { text: "네, 솔직한 편이다", scores: { F: 1 } },
-        { text: "아니요, 내성적인 편이다", scores: { T: 1 } }
-      ]},
-      { text: "마감 전에 일을 끝내는 편이다.", options: [
-        { text: "네, 미리 끝낸다", scores: { J: 1 } },
-        { text: "아니요, 마지막 순간까지 미룬다", scores: { P: 1 } }
-      ]},
-      { text: "새로운 경험을 추구하는 편이다.", options: [
-        { text: "네, 도전을 즐긴다", scores: { N: 1 } },
-        { text: "아니요, 익숙한 게 편하다", scores: { S: 1 } }
-      ]},
-      { text: "친구들과 만나 에너지를 충전한다.", options: [
-        { text: "네, 만나면 힘이 난다", scores: { E: 1 } },
-        { text: "아니요, 혼자 있을 때 편하다", scores: { I: 1 } }
-      ]}
-    ],
-    descriptions: {
-      ISTJ: "ISTJ: 현실적이고 책임감 강한 신중한 사람입니다.",
-      ISFJ: "ISFJ: 따뜻하고 헌신적인 사람입니다.",
-      INFJ: "INFJ: 통찰력 있고 조용한 이상주의자입니다.",
-      INTJ: "INTJ: 전략적인 사고를 가진 계획가입니다.",
-      ISTP: "ISTP: 현실적이고 논리적인 문제 해결사입니다.",
-      ISFP: "ISFP: 온화하고 예술적인 감각을 가진 사람입니다.",
-      INFP: "INFP: 이상적이고 창의적인 사람입니다.",
-      INTP: "INTP: 논리적이고 분석적인 사색가입니다.",
-      ESTP: "ESTP: 에너지 넘치고 모험을 즐기는 사람입니다.",
-      ESFP: "ESFP: 사교적이고 낙천적인 사람입니다.",
-      ENFP: "ENFP: 열정적이고 창의적인 사람입니다.",
-      ENTP: "ENTP: 혁신적이고 논쟁을 즐기는 사람입니다.",
-      ESTJ: "ESTJ: 조직적이고 현실적인 리더입니다.",
-      ESFJ: "ESFJ: 친절하고 협력적인 사람입니다.",
-      ENFJ: "ENFJ: 카리스마 있고 사람을 이끄는 사람입니다.",
-      ENTJ: "ENTJ: 결단력 있고 전략적인 리더입니다."
-    }
-  },
-
-  taste: {
-    title: "취향 분석 테스트",
-    questions: [
-      { text: "주말에 주로 무엇을 하나요?", options: [
-        { text: "집에서 휴식한다", scores: { Calm: 2 } },
-        { text: "친구들과 외출한다", scores: { Active: 2 } },
-        { text: "새로운 취미를 시작한다", scores: { Creative: 2 } }
-      ]},
-      { text: "좋아하는 음악 장르는?", options: [
-        { text: "클래식/재즈", scores: { Calm: 2 } },
-        { text: "팝/댄스", scores: { Active: 2 } },
-        { text: "인디/대안", scores: { Creative: 2 } }
-      ]},
-      { text: "영화 장르는?", options: [
-        { text: "드라마/로맨스", scores: { Calm: 2 } },
-        { text: "액션/모험", scores: { Active: 2 } },
-        { text: "예술/다큐", scores: { Creative: 2 } }
-      ]},
-      { text: "하루 일과에서 가장 중요한 것은?", options: [
-        { text: "평화와 안정", scores: { Calm: 2 } },
-        { text: "흥미로운 경험", scores: { Active: 2 } },
-        { text: "창의적 활동", scores: { Creative: 2 } }
-      ]},
-      { text: "책을 읽는다면?", options: [
-        { text: "자기계발서", scores: { Calm: 2 } },
-        { text: "소설/판타지", scores: { Active: 2 } },
-        { text: "예술/사진집", scores: { Creative: 2 } }
-      ]},
-      { text: "좋아하는 색깔은?", options: [
-        { text: "파랑/녹색", scores: { Calm: 2 } },
-        { text: "빨강/주황", scores: { Active: 2 } },
-        { text: "보라/분홍", scores: { Creative: 2 } }
-      ]},
-      { text: "여행 스타일은?", options: [
-        { text: "조용한 자연 속", scores: { Calm: 2 } },
-        { text: "도시 탐험", scores: { Active: 2 } },
-        { text: "문화 체험", scores: { Creative: 2 } }
-      ]},
-      { text: "SNS 사용 패턴은?", options: [
-        { text: "주로 관찰만 한다", scores: { Calm: 2 } },
-        { text: "자주 소통한다", scores: { Active: 2 } },
-        { text: "자신만의 콘텐츠를 만든다", scores: { Creative: 2 } }
-      ]},
-      { text: "음식 취향은?", options: [
-        { text: "전통 음식 선호", scores: { Calm: 2 } },
-        { text: "트렌디한 음식 좋아함", scores: { Active: 2 } },
-        { text: "새로운 레시피 도전", scores: { Creative: 2 } }
-      ]},
-      { text: "스트레스 받을 때 대처법은?", options: [
-        { text: "조용히 휴식한다", scores: { Calm: 2 } },
-        { text: "운동으로 해소한다", scores: { Active: 2 } },
-        { text: "취미에 몰입한다", scores: { Creative: 2 } }
-      ]}
-    ],
-    descriptions: {
-      Calm: "당신은 차분하고 안정적인 취향을 가진 사람입니다. 내면의 평화를 중요하게 생각합니다.",
-      Active: "당신은 활발하고 사교적인 취향을 가진 사람입니다. 새로운 경험을 즐깁니다.",
-      Creative: "당신은 창의적이고 독특한 취향을 가진 사람입니다. 예술적이고 새로운 것을 좋아합니다."
-    }
-  },
-
-  career: {
-    title: "미래 진로 직업군 테스트",
-    questions: [
-      { text: "일할 때 가장 중요하게 생각하는 것은?", options: [
-        { text: "안정성", scores: { Stable: 2 } },
-        { text: "창의성", scores: { Creative: 2 } },
-        { text: "사람과의 교류", scores: { Social: 2 } },
-        { text: "기술적 전문성", scores: { Tech: 2 } },
-        { text: "도전과 변화", scores: { Challenge: 2 } },
-        { text: "자연과의 조화", scores: { Nature: 2 } }
-      ]},
-      { text: "팀에서 맡고 싶은 역할은?", options: [
-        { text: "관리 및 조율", scores: { Stable: 2 } },
-        { text: "아이디어 제안", scores: { Creative: 2 } },
-        { text: "사람 지원 및 상담", scores: { Social: 2 } },
-        { text: "기술 문제 해결", scores: { Tech: 2 } },
-        { text: "리스크 감수", scores: { Challenge: 2 } },
-        { text: "환경 보호 활동", scores: { Nature: 2 } }
-      ]},
-      { text: "일하는 환경으로 가장 좋은 곳은?", options: [
-        { text: "조용하고 안정적인 사무실", scores: { Stable: 2 } },
-        { text: "자유로운 창의 공간", scores: { Creative: 2 } },
-        { text: "사람들과 활발한 교류가 있는 곳", scores: { Social: 2 } },
-        { text: "최신 기술이 갖춰진 곳", scores: { Tech: 2 } },
-        { text: "변화가 많고 도전적인 곳", scores: { Challenge: 2 } },
-        { text: "자연과 가까운 곳", scores: { Nature: 2 } }
-      ]},
-      { text: "업무 방식은?", options: [
-        { text: "계획적이고 체계적", scores: { Stable: 2 } },
-        { text: "유연하고 창의적", scores: { Creative: 2 } },
-        { text: "협력과 소통 중시", scores: { Social: 2 } },
-        { text: "분석적이고 논리적", scores: { Tech: 2 } },
-        { text: "즉흥적이고 도전적", scores: { Challenge: 2 } },
-        { text: "환경 친화적", scores: { Nature: 2 } }
-      ]},
-      { text: "가장 만족스러운 보상은?", options: [
-        { text: "안정적인 월급", scores: { Stable: 2 } },
-        { text: "창의적 인정", scores: { Creative: 2 } },
-        { text: "사람들의 감사", scores: { Social: 2 } },
-        { text: "성과에 따른 보상", scores: { Tech: 2 } },
-        { text: "새로운 도전 기회", scores: { Challenge: 2 } },
-        { text: "자연 보호 기여", scores: { Nature: 2 } }
-      ]},
-      { text: "일할 때 가장 많이 사용하는 능력은?", options: [
-        { text: "조직과 관리", scores: { Stable: 2 } },
-        { text: "창의적 사고", scores: { Creative: 2 } },
-        { text: "대인 관계", scores: { Social: 2 } },
-        { text: "기술적 지식", scores: { Tech: 2 } },
-        { text: "모험심", scores: { Challenge: 2 } },
-        { text: "자연 이해", scores: { Nature: 2 } }
-      ]},
-      { text: "스트레스 받을 때 대처법은?", options: [
-        { text: "차분히 상황을 분석", scores: { Stable: 2 } },
-        { text: "새로운 아이디어 모색", scores: { Creative: 2 } },
-        { text: "사람들과 대화", scores: { Social: 2 } },
-        { text: "기술적 해결책 찾기", scores: { Tech: 2 } },
-        { text: "즉흥적 행동", scores: { Challenge: 2 } },
-        { text: "자연에서 휴식", scores: { Nature: 2 } }
-      ]},
-      { text: "선호하는 일의 속도는?", options: [
-        { text: "느리고 꾸준함", scores: { Stable: 2 } },
-        { text: "빠르고 변동적", scores: { Creative: 2 } },
-        { text: "협동과 조율", scores: { Social: 2 } },
-        { text: "정확하고 신속함", scores: { Tech: 2 } },
-        { text: "도전적이고 변화무쌍", scores: { Challenge: 2 } },
-        { text: "자연 친화적", scores: { Nature: 2 } }
-      ]},
-      { text: "어떤 일을 하면 만족하나요?", options: [
-        { text: "안정적인 업무 수행", scores: { Stable: 2 } },
-        { text: "새로운 창작 활동", scores: { Creative: 2 } },
-        { text: "사람 도움과 상담", scores: { Social: 2 } },
-        { text: "복잡한 기술 문제 해결", scores: { Tech: 2 } },
-        { text: "새로운 도전과 성공", scores: { Challenge: 2 } },
-        { text: "자연과 함께하는 일", scores: { Nature: 2 } }
-      ]},
-      { text: "가장 중요하게 생각하는 직업 가치관은?", options: [
-        { text: "안정과 신뢰", scores: { Stable: 2 } },
-        { text: "창의와 혁신", scores: { Creative: 2 } },
-        { text: "사람과의 관계", scores: { Social: 2 } },
-        { text: "기술과 전문성", scores: { Tech: 2 } },
-        { text: "도전과 모험", scores: { Challenge: 2 } },
-        { text: "자연과 환경보호", scores: { Nature: 2 } }
-      ]}
-    ],
-    descriptions: {
-      Stable: "안정적인 환경을 선호하며 꾸준한 노력을 중시하는 타입입니다.",
-      Creative: "창의성과 새로운 아이디어를 중요하게 생각하는 타입입니다.",
-      Social: "사람들과의 관계와 협력을 중시하는 타입입니다.",
-      Tech: "기술과 전문성을 바탕으로 문제를 해결하는 타입입니다.",
-      Challenge: "도전과 변화를 즐기며 적극적인 타입입니다.",
-      Nature: "자연과의 조화를 중시하며 환경을 생각하는 타입입니다."
-    }
-  },
-
-  stress: {
-    title: "스트레스 테스트",
-    questions: [
-      { text: "최근에 잠을 잘 못 잔다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "자주 짜증이 난다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "일상에서 쉽게 피로를 느낀다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "집중하기 어렵다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "건강에 문제가 생겼다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "감정 기복이 심하다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "사회적 활동이 줄었다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "자신감이 떨어졌다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "불안감을 자주 느낀다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]},
-      { text: "스트레스 때문에 신체적 증상이 있다.", options: [
-        { text: "전혀 아니다", scores: { Low: 2 } },
-        { text: "가끔 그렇다", scores: { Medium: 2 } },
-        { text: "자주 그렇다", scores: { High: 2 } }
-      ]}
-    ],
-    descriptions: {
-      Low: "스트레스가 낮은 상태입니다. 현재 안정적인 컨디션을 유지하고 있습니다.",
-      Medium: "중간 정도의 스트레스를 경험하고 있습니다. 주의가 필요합니다.",
-      High: "높은 스트레스 상태입니다. 휴식과 관리가 필요합니다."
-    }
-  },
-
   emotion: {
     title: "감정 상태 테스트",
     questions: [
@@ -451,75 +173,268 @@ const tests = {
       Angry: "당신은 분노와 짜증이 쌓여있는 상태입니다.",
       Calm: "당신은 차분하고 평온한 감정 상태입니다."
     }
+  },
+
+  stress: {
+    title: "스트레스 테스트",
+    questions: [
+      { text: "최근에 잠을 잘 못 잔다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "자주 짜증이 난다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "일상에서 쉽게 피로를 느낀다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "집중하기 어렵다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "건강에 문제가 생겼다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "감정 기복이 심하다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "사회적 활동이 줄었다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "자신감이 떨어졌다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "불안감을 자주 느낀다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]},
+      { text: "스트레스 때문에 신체적 증상이 있다.", options: [
+        { text: "전혀 아니다", scores: { Low: 2 } },
+        { text: "가끔 그렇다", scores: { Medium: 2 } },
+        { text: "자주 그렇다", scores: { High: 2 } }
+      ]}
+    ],
+    descriptions: {
+      Low: "스트레스가 낮은 상태입니다. 현재 안정적인 컨디션을 유지하고 있습니다.",
+      Medium: "중간 정도의 스트레스를 경험하고 있습니다. 주의가 필요합니다.",
+      High: "높은 스트레스 상태입니다. 휴식과 관리가 필요합니다."
+    }
+  },
+
+  mbti: {
+    title: "MBTI 테스트",
+    questions: [
+      { text: "사람들과 어울리는 것이 편한가요?", options: [
+        { text: "네, 매우 편하다", scores: { E: 2 } },
+        { text: "아니요, 혼자가 좋다", scores: { I: 2 } }
+      ]},
+      { text: "정보를 받아들일 때 주로?", options: [
+        { text: "현실적이고 구체적이다", scores: { S: 2 } },
+        { text: "직관적이고 미래지향적이다", scores: { N: 2 } }
+      ]},
+      { text: "결정을 내릴 때 중요하게 생각하는 것은?", options: [
+        { text: "논리와 사실", scores: { T: 2 } },
+        { text: "감정과 가치", scores: { F: 2 } }
+      ]},
+      { text: "계획적인 편인가요?", options: [
+        { text: "네, 계획적이다", scores: { J: 2 } },
+        { text: "아니요, 즉흥적이다", scores: { P: 2 } }
+      ]},
+      { text: "에너지는 주로 어디서 얻나요?", options: [
+        { text: "사람들과 함께 있을 때", scores: { E: 2 } },
+        { text: "혼자 있을 때", scores: { I: 2 } }
+      ]},
+      { text: "새로운 정보를 어떻게 받아들이나요?", options: [
+        { text: "구체적이고 사실적", scores: { S: 2 } },
+        { text: "추상적이고 상징적", scores: { N: 2 } }
+      ]},
+      { text: "결정을 내릴 때 어떤 방식을 더 선호하나요?", options: [
+        { text: "논리적이고 분석적", scores: { T: 2 } },
+        { text: "감정적이고 공감적", scores: { F: 2 } }
+      ]},
+      { text: "생활 스타일은?", options: [
+        { text: "체계적이고 계획적", scores: { J: 2 } },
+        { text: "자유롭고 융통성 있음", scores: { P: 2 } }
+      ]},
+      { text: "대화를 할 때 주로?", options: [
+        { text: "직접적이고 솔직하다", scores: { E: 2 } },
+        { text: "조용하고 내성적이다", scores: { I: 2 } }
+      ]},
+      { text: "문제를 해결할 때 주로?", options: [
+        { text: "실용적이고 현실적", scores: { S: 2 } },
+        { text: "상상력과 창의적", scores: { N: 2 } }
+      ]}
+    ],
+    descriptions: {
+      ESTJ: "현실적이고 조직적인 관리자 유형입니다.",
+      ESFJ: "사교적이고 협력적인 외교관 유형입니다.",
+      ENFP: "창의적이고 열정적인 활동가 유형입니다.",
+      INFP: "이상적이고 내성적인 중재자 유형입니다.",
+      // 생략 가능 - 기본형만 표시
+      E: "외향적인 성향입니다.",
+      I: "내향적인 성향입니다.",
+      S: "현실적이고 구체적인 정보를 선호합니다.",
+      N: "직관적이고 미래지향적입니다.",
+      T: "논리적이고 분석적입니다.",
+      F: "감정적이고 공감적입니다.",
+      J: "계획적이고 체계적입니다.",
+      P: "즉흥적이고 융통성 있습니다."
+    }
+  },
+
+  taste: {
+    title: "취향 분석 테스트",
+    questions: [
+      { text: "좋아하는 색깔은?", options: [
+        { text: "파란색", scores: { Calm: 2 } },
+        { text: "빨간색", scores: { Active: 2 } },
+        { text: "노란색", scores: { Cheerful: 2 } },
+        { text: "초록색", scores: { Natural: 2 } }
+      ]},
+      { text: "선호하는 음악 장르는?", options: [
+        { text: "클래식", scores: { Calm: 2 } },
+        { text: "락", scores: { Active: 2 } },
+        { text: "팝", scores: { Cheerful: 2 } },
+        { text: "재즈", scores: { Natural: 2 } }
+      ]},
+      { text: "휴가 때 선호하는 활동은?", options: [
+        { text: "산책하기", scores: { Calm: 2 } },
+        { text: "파티하기", scores: { Active: 2 } },
+        { text: "여행가기", scores: { Cheerful: 2 } },
+        { text: "자연 속에서 휴식", scores: { Natural: 2 } }
+      ]},
+      { text: "좋아하는 음식 스타일은?", options: [
+        { text: "건강식", scores: { Calm: 2 } },
+        { text: "매운 음식", scores: { Active: 2 } },
+        { text: "달콤한 음식", scores: { Cheerful: 2 } },
+        { text: "신선한 음식", scores: { Natural: 2 } }
+      ]},
+      { text: "가장 좋아하는 영화 장르는?", options: [
+        { text: "드라마", scores: { Calm: 2 } },
+        { text: "액션", scores: { Active: 2 } },
+        { text: "코미디", scores: { Cheerful: 2 } },
+        { text: "다큐멘터리", scores: { Natural: 2 } }
+      ]}
+    ],
+    descriptions: {
+      Calm: "당신은 차분하고 안정적인 취향을 가지고 있습니다.",
+      Active: "당신은 활발하고 활동적인 취향을 가지고 있습니다.",
+      Cheerful: "당신은 쾌활하고 긍정적인 취향을 가지고 있습니다.",
+      Natural: "당신은 자연 친화적인 취향을 가지고 있습니다."
+    }
+  },
+
+  career: {
+    title: "미래진로 희망 직업군 테스트",
+    questions: [
+      { text: "창의적인 일을 좋아하나요?", options: [
+        { text: "네", scores: { Creative: 2 } },
+        { text: "아니요", scores: { Practical: 2 } }
+      ]},
+      { text: "사람들과 협력하는 것을 좋아하나요?", options: [
+        { text: "네", scores: { Social: 2 } },
+        { text: "아니요", scores: { Independent: 2 } }
+      ]},
+      { text: "문제를 해결하는 데 흥미가 있나요?", options: [
+        { text: "네", scores: { Analytical: 2 } },
+        { text: "아니요", scores: { Supportive: 2 } }
+      ]},
+      { text: "리더십을 발휘하는 것을 좋아하나요?", options: [
+        { text: "네", scores: { Leader: 2 } },
+        { text: "아니요", scores: { Follower: 2 } }
+      ]},
+      { text: "기술적이고 논리적인 일을 선호하나요?", options: [
+        { text: "네", scores: { Technical: 2 } },
+        { text: "아니요", scores: { Creative: 1 } }
+      ]},
+      { text: "다른 사람을 돕는 것을 좋아하나요?", options: [
+        { text: "네", scores: { Supportive: 2 } },
+        { text: "아니요", scores: { Analytical: 1 } }
+      ]},
+      { text: "정확하고 세부적인 작업을 좋아하나요?", options: [
+        { text: "네", scores: { DetailOriented: 2 } },
+        { text: "아니요", scores: { BigPicture: 2 } }
+      ]},
+      { text: "빠르게 변화하는 환경에서 잘 적응하나요?", options: [
+        { text: "네", scores: { Flexible: 2 } },
+        { text: "아니요", scores: { Stable: 2 } }
+      ]},
+      { text: "문서를 정리하고 관리하는 일을 좋아하나요?", options: [
+        { text: "네", scores: { Organized: 2 } },
+        { text: "아니요", scores: { Spontaneous: 2 } }
+      ]},
+      { text: "팀워크를 중요하게 생각하나요?", options: [
+        { text: "네", scores: { TeamPlayer: 2 } },
+        { text: "아니요", scores: { Independent: 1 } }
+      ]}
+    ],
+    descriptions: {
+      Creative: "창의적인 업무에 적합합니다.",
+      Practical: "실용적인 업무에 적합합니다.",
+      Social: "사람들과 협력하는 업무에 적합합니다.",
+      Independent: "독립적으로 일하는 것을 선호합니다.",
+      Analytical: "분석적이고 문제 해결 능력이 뛰어납니다.",
+      Supportive: "지원하고 돕는 업무에 적합합니다.",
+      Leader: "리더십을 발휘하는 것을 좋아합니다.",
+      Follower: "팀 내 지원 역할에 적합합니다.",
+      Technical: "기술적이고 논리적인 업무에 적합합니다.",
+      DetailOriented: "정확하고 세부적인 업무에 적합합니다.",
+      BigPicture: "전체적인 그림을 보는 업무에 적합합니다.",
+      Flexible: "빠르게 변화하는 환경에 적응력이 좋습니다.",
+      Stable: "안정적인 환경을 선호합니다.",
+      Organized: "체계적이고 조직적인 업무에 적합합니다.",
+      Spontaneous: "즉흥적이고 자유로운 업무에 적합합니다.",
+      TeamPlayer: "팀워크를 중요하게 생각합니다."
+    }
   }
 };
-
-// MBTI 결과 판별 함수
-function getMBTIResult(scores) {
-  let result = "";
-  result += (scores.E >= (scores.I || 0)) ? "E" : "I";
-  result += (scores.S >= (scores.N || 0)) ? "S" : "N";
-  result += (scores.T >= (scores.F || 0)) ? "T" : "F";
-  result += (scores.J >= (scores.P || 0)) ? "J" : "P";
-  return result;
-}
-
-const testSelect = document.getElementById("test-select");
-const testTitle = document.getElementById("test-title");
-const questionContainer = document.getElementById("question-container");
-const questionEl = document.getElementById("question");
-const instructionsEl = document.getElementById("instructions");
-const optionsEl = document.getElementById("options");
-const resultEl = document.getElementById("result");
 
 let currentTest = null;
 let currentQIndex = 0;
 let scores = {};
-let optionButtons = [];
+const testSelect = document.getElementById("test-select");
+const testTitle = document.getElementById("test-title");
+const questionContainer = document.getElementById("question-container");
+const questionEl = document.getElementById("question");
+const optionsList = document.getElementById("options-list");
+const answerInput = document.getElementById("answer-input");
+const resultDiv = document.getElementById("result");
 
 testSelect.addEventListener("change", () => {
   const val = testSelect.value;
-  if (!val) {
+  if (!val || !tests[val]) {
     questionContainer.style.display = "none";
     testTitle.textContent = "";
-    resultEl.textContent = "";
+    resultDiv.textContent = "";
     return;
   }
   currentTest = tests[val];
   currentQIndex = 0;
   scores = {};
-  resultEl.textContent = "";
-  testTitle.textContent = currentTest.title;
-  questionContainer.style.display = "block";
-  showQuestion();
-});
-
-// 숫자키 및 방향키로 선택 가능하도록 이벤트 처리
-document.addEventListener("keydown", (e) => {
-  if (!currentTest) return;
-  if (currentQIndex >= currentTest.questions.length) return;
-
-  // 숫자키: 1~9 (숫자 1은 key 'Digit1' 또는 'Numpad1')
-  if (/Digit[1-9]/.test(e.code)) {
-    let idx = parseInt(e.code.replace("Digit","")) - 1;
-    if (idx < optionButtons.length) {
-      optionButtons[idx].click();
-    }
-  } else if (/Numpad[1-9]/.test(e.code)) {
-    let idx = parseInt(e.code.replace("Numpad","")) - 1;
-    if (idx < optionButtons.length) {
-      optionButtons[idx].click();
-    }
-  } else {
-    // 방향키 처리: 좌(←), 상(↑), 우(→), 하(↓)
-    // 방향키를 눌렀을 때 선택 가능한 옵션을 누르는 효과(일단 우,하키를 0번째 선택으로 처리)
-    // 단순하게 오른쪽이나 아래키 누르면 첫 옵션 선택 (키 1 누른 효과)
-    if (["ArrowRight","ArrowDown"].includes(e.code)) {
-      if(optionButtons.length > 0) optionButtons[0].click();
-    } else if (["ArrowLeft","ArrowUp"].includes(e.code)) {
-      if(optionButtons.length > 1) optionButtons[1].click();
-    }
+  for (const key in currentTest.descriptions) {
+    scores[key] = 0;
   }
+  testTitle.textContent = currentTest.title;
+  resultDiv.textContent = "";
+  showQuestion();
+  questionContainer.style.display = "block";
+  answerInput.value = "";
+  answerInput.focus();
 });
 
 function showQuestion() {
@@ -528,83 +443,79 @@ function showQuestion() {
     return;
   }
   const q = currentTest.questions[currentQIndex];
-  questionEl.textContent = `Q${currentQIndex+1}. ${q.text}`;
-  optionsEl.innerHTML = "";
-  optionButtons = [];
+  questionEl.textContent = `Q${currentQIndex + 1}. ${q.text}`;
+
+  // 번호 나열된 선택지 문자열 만들기
+  let optionsText = "";
   q.options.forEach((opt, idx) => {
-    const btn = document.createElement("button");
-    btn.className = "option-btn";
-    // 번호와 함께 텍스트 보여주기
-    btn.textContent = `${idx + 1}. ${opt.text}`;
-    btn.setAttribute("aria-label", `선택지 ${idx + 1}: ${opt.text}`);
-    btn.onclick = () => {
-      for (const key in opt.scores) {
-        scores[key] = (scores[key] || 0) + opt.scores[key];
-      }
-      currentQIndex++;
-      showQuestion();
-    };
-    optionsEl.appendChild(btn);
-    optionButtons.push(btn);
+    optionsText += `${idx + 1}. ${opt.text}\n`;
   });
+  optionsList.textContent = optionsText.trim();
+
+  answerInput.value = "";
+  answerInput.placeholder = `1~${q.options.length} 숫자 입력 후 Enter`;
+  answerInput.focus();
 }
 
 function showResult() {
   questionContainer.style.display = "none";
 
-  if (testSelect.value === "mbti") {
-    // MBTI 결과 판별 및 점수 표시
-    const mbtiType = getMBTIResult(scores);
-    let description = tests.mbti.descriptions[mbtiType] || "결과를 분석할 수 없습니다.";
-
-    // 각 지표별 점수 상세
-    const E = scores.E || 0;
-    const I = scores.I || 0;
-    const S = scores.S || 0;
-    const N = scores.N || 0;
-    const T = scores.T || 0;
-    const F = scores.F || 0;
-    const J = scores.J || 0;
-    const P = scores.P || 0;
-
-    let scoreDetails = `점수 상세:\n`+
-      `E: ${E}점, I: ${I}점\n` +
-      `S: ${S}점, N: ${N}점\n` +
-      `T: ${T}점, F: ${F}점\n` +
-      `J: ${J}점, P: ${P}점\n\n`;
-
-    resultEl.textContent = `당신의 MBTI 유형은 ${mbtiType}입니다.\n\n${scoreDetails}${description}`;
-    return;
-  }
-
-  // MBTI 외 테스트 결과: 점수 높은 결과 모두 보여주기 + 점수 표시
-  // 점수 최대값 구하기
+  // 점수 최대값 찾기
   let maxScore = -Infinity;
   for (const key in scores) {
     if (scores[key] > maxScore) maxScore = scores[key];
   }
+  // 최대점수인 키들 배열
+  const winners = Object.keys(scores).filter(k => scores[k] === maxScore);
 
-  // 최고점수인 항목들만 필터링
-  let topCategories = [];
+  let resultText = `테스트 결과: ${currentTest.title}\n\n[점수 상세]\n`;
   for (const key in scores) {
-    if (scores[key] === maxScore) topCategories.push(key);
+    resultText += `${key}: ${scores[key]}점\n`;
   }
-
-  // 모든 점수 항목 + 설명을 문자열로 구성
-  let allScoresText = "모든 점수:\n";
-  for (const key in scores) {
-    allScoresText += `${key}: ${scores[key]}점\n`;
-  }
-  allScoresText += "\n";
-
-  // 최고점 결과 모두 출력
-  let descriptionText = "";
-  topCategories.forEach(cat => {
-    descriptionText += `[${cat}]: ${tests[currentTest === tests.mbti ? "mbti" : testSelect.value].descriptions[cat] || "설명 없음"}\n\n`;
+  resultText += `\n[결과]\n`;
+  winners.forEach(key => {
+    const desc = currentTest.descriptions[key] || "설명 없음";
+    resultText += `[${key}]: ${desc}\n\n`;
   });
 
-  resultEl.textContent = `테스트 결과:\n\n${allScoresText}${descriptionText}`;
+  resultDiv.textContent = resultText;
 }
+
+// 입력창 Enter 눌렀을 때 처리
+answerInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const val = answerInput.value.trim();
+    const q = currentTest.questions[currentQIndex];
+    const idx = parseInt(val, 10) - 1;
+
+    if (!q) return;
+    if (isNaN(idx) || idx < 0 || idx >= q.options.length) {
+      alert(`1부터 ${q.options.length} 사이의 숫자를 입력하세요.`);
+      return;
+    }
+
+    // 점수 더하기
+    const selectedScores = q.options[idx].scores;
+    for (const key in selectedScores) {
+      if (scores[key] !== undefined) {
+        scores[key] += selectedScores[key];
+      } else {
+        scores[key] = selectedScores[key];
+      }
+    }
+    currentQIndex++;
+    showQuestion();
+  }
+});
+
+// 입력 시작 시 placeholder 자동 사라짐, 입력 없으면 다시 나타남
+answerInput.addEventListener("input", () => {
+  if (answerInput.value.trim() === "") {
+    answerInput.placeholder = `1~${currentTest.questions[currentQIndex]?.options.length} 숫자 입력 후 Enter`;
+  } else {
+    answerInput.placeholder = "";
+  }
+});
 </script>
 
 </body>
